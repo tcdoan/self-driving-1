@@ -1,6 +1,6 @@
 /**
 	localizer.cpp
-
+	
 	Purpose: implements a 2-dimensional histogram filter
 	for a robot living on a colored cyclical grid by 
 	correctly implementing the "initialize_beliefs", 
@@ -40,10 +40,9 @@ using namespace std;
            0.25 0.25
 */
 vector< vector <float> > initialize_beliefs(vector< vector <char> > grid) {
-	vector< vector <float> > newGrid;
-
-	// your code here
-	
+	float prob = 1.0/(grid.size()*grid[0].size());
+	vector <float> row(grid[0].size(), prob);
+	vector< vector <float> > newGrid(grid.size(), row);
 	return newGrid;
 }
 
@@ -67,11 +66,10 @@ vector< vector <float> > initialize_beliefs(vector< vector <char> > grid) {
     0.00  0.00  1.00 
 
   @param dy - the intended change in y position of the robot
-
   @param dx - the intended change in x position of the robot
 
     @param beliefs - a two dimensional grid of floats representing
-         the robot's beliefs for each cell before sensing. For 
+         the robot's beliefs for each cell before moving. For 
          example, a robot which has almost certainly localized 
          itself in a 2D world might have the following beliefs:
 
@@ -88,11 +86,17 @@ vector< vector <float> > move(int dy, int dx,
   vector < vector <float> > beliefs,
   float blurring) 
 {
+	uint16_t rows = beliefs.size();
+	uint16_t cols = beliefs[0].size();
+	vector< vector <float> > newGrid(rows, vector<float>(cols, 0.0));
 
-  vector < vector <float> > newGrid;
-
-  // your code here
-
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			int y = (rows + (i + dy)) % rows;
+			int x = (cols + (j + dx)) % cols;
+			newGrid[y][x] = beliefs[i][j];
+		}		
+	}
   return blur(newGrid, blurring);
 }
 
@@ -109,7 +113,7 @@ vector< vector <float> > move(int dy, int dx,
 		   (vector of vectors of chars) where each char represents a 
 		   color. For example:
 
-		   g g g
+		     g g g
     	   g r g
     	   g g g
 
@@ -140,9 +144,20 @@ vector< vector <float> > sense(char color,
 	float p_hit,
 	float p_miss) 
 {
-	vector< vector <float> > newGrid;
-
 	// your code here
+	uint16_t rows = beliefs.size();
+	uint16_t cols = beliefs[0].size();
+	vector< vector <float> > newGrid(rows, vector<float>(cols, 0.0));
+
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			if (grid[i][j] == color) {
+				newGrid[i][j] = beliefs[i][j] * p_hit;
+			} else {
+				newGrid[i][j] = beliefs[i][j] * p_miss;
+			}
+		}
+	}
 
 	return normalize(newGrid);
 }

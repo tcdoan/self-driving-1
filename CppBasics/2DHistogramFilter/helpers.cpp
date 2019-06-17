@@ -16,6 +16,8 @@
 #include <string>
 #include <fstream>
 #include "helpers.h"
+#include <numeric>
+
 // #include "debugging_helpers.cpp"
 
 using namespace std;
@@ -34,10 +36,20 @@ using namespace std;
 */
 vector< vector<float> > normalize(vector< vector <float> > grid) {
 	
-	vector< vector<float> > newGrid;
+	uint16_t rows = grid.size();
+	uint16_t cols = grid[0].size();
 
-	// todo - your code here
-
+	float s = 0.00;
+	for (auto &v : grid) {
+		s = accumulate(v.begin(), v.end(), s);
+	}
+	
+	vector< vector<float> > newGrid(rows, vector<float>(cols, 0.0));
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			newGrid[i][j] = grid[i][j]/s;
+		}
+	}
 	return newGrid;
 }
 
@@ -75,11 +87,27 @@ vector< vector<float> > normalize(vector< vector <float> > grid) {
     	   has been blurred.
 */
 vector < vector <float> > blur(vector < vector < float> > grid, float blurring) {
-
-	vector < vector <float> > newGrid;
-	
-	// your code here
-
+	uint16_t rows =  grid.size();
+	uint16_t cols = grid[0].size();
+	float center_prob = 1.0-blurring;
+	float corner_prob = blurring/12.0;
+	float adj_prob = blurring/6.0;
+	vector< vector<float> > newGrid(rows, vector<float>(cols, 0.00));
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			newGrid[i][j] += newGrid[i][j]*center_prob;
+			uint16_t left =  j > 0 ? j-1 : cols-1;
+			uint16_t right = j == cols -1 ? 0 : j + 1;
+			uint16_t north = i > 0 ?  i -1 : rows -1;
+			uint16_t south = i == rows -1 ? 0 : i + 1;
+			newGrid[i][left] += newGrid[i][left]*adj_prob;
+			newGrid[i][right] += newGrid[i][right]*adj_prob;
+			newGrid[north][j] += newGrid[north][j]*adj_prob;
+			newGrid[south][j] += newGrid[south][j]*adj_prob;
+			newGrid[north][left] += newGrid[north][left]*corner_prob;
+			newGrid[south][right] += newGrid[south][right]*corner_prob;
+		}
+	}	
 	return normalize(newGrid);
 }
 
