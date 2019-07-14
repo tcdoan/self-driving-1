@@ -5,13 +5,30 @@ import math
 
 class MinPQ():
     def __init__(self, f_scores):
-        self.n = 0;
+        self.n = 0
+        
+        ## the iterator index
+        self.i = 0
         
         # dict(node_id, fscore)
-        self.f_scores = f_scores;        
+        self.f_scores = f_scores
         self.elements = [None]
         
+    def __iter__(self):
+        self.i = 1    
+        return self
+    
+    def __next__(self):
+        if self.i > self.n:
+            raise StopIteration
+        else:
+            self.i += 1
+            return self.elements[self.i-1]
+        
     def score(self, idx):
+        if  self.elements[idx] not in self.f_scores:
+            return math.inf
+        
         return self.f_scores[self.elements[idx]]
         
     def min(self):
@@ -23,15 +40,15 @@ class MinPQ():
         self.swim(self.n)
                 
     def swim(self, k):
-        while k/2 >= 1:
-            if self.score(k/2) <= self.score(k):
+        while k//2 >= 1:
+            if self.score(k//2) <= self.score(k):
                 return
-            self.elements[k/2], self.elements[k] = self.elements[k], self.elements[k/2]
-            k = k / 2
+            self.elements[k//2], self.elements[k] = self.elements[k], self.elements[k//2]
+            k = k // 2
 
     def remove(self):
         self.elements[1], self.elements[self.n] = self.elements[self.n], self.elements[1]
-        self.elements[self.n] = None
+        del self.elements[-1]
         self.n -= 1       
         self.sink(1)
 
@@ -100,7 +117,7 @@ class PathPlanner():
                 self.path = [x for x in reversed(self.reconstruct_path(current))]
                 return self.path
             else:
-                self.openSet.remove(current)
+                self.openSet.remove()
                 self.closedSet.add(current)
 
             for neighbor in self.get_neighbors(current):
@@ -157,7 +174,7 @@ class PathPlanner():
         """ Check whether there are still nodes on the frontier to explore.
         Returns True if the open set is empty. False otherwise. """
         # TODO: Return True if the open set is empty. False otherwise.
-        return self.openSet.size() > 0
+        return self.openSet.size() == 0
         
     def get_current_node(self):
         """ Find the lowest fScore of the nodes on the frontier.
@@ -168,7 +185,7 @@ class PathPlanner():
     def get_neighbors(self, node):
         """Returns the neighbors of a node"""
         # TODO: Return the neighbors of a node
-        return self.map[node]['connections']
+        return self.map.roads[node]
         
     def set_map(self, M):
         """Method used to set map attribute """
@@ -190,15 +207,18 @@ class PathPlanner():
 
     def get_gScore(self, node):
         """Returns the g Score of a node"""
+        if node not in self.gScore:
+            return math.inf
+        
         return self.gScore[node]
                 
 
     def distance(self, node_1, node_2):
         """ Computes the Euclidean L2 Distance"""
-        x1 = self.map[node_1]['pos'](0)
-        y1 = self.map[node_1]['pos'](1)
-        x2 = self.map[node_2]['pos'](0)
-        y2 = self.map[node_2]['pos'](1)
+        x1 = self.map.intersections[node_1][0]
+        y1 = self.map.intersections[node_1][1]
+        x2 = self.map.intersections[node_2][0]
+        y2 = self.map.intersections[node_2][1]        
         return math.sqrt((x1-x2)**2 + (y1-y2)**2)
 
     def get_tentative_gScore(self, current, neighbor):
@@ -227,7 +247,7 @@ class PathPlanner():
         self.fScore[neighbor] = self.calculate_fscore(neighbor)        
         
 map_40 = load_map_40()
-#show_map(map_40)
+show_map(map_40)
 #show_map(map_40, start=5, goal=34, path=[5,16,37,12,34])
 
 planner = PathPlanner(map_40, 5, 34)
@@ -237,11 +257,10 @@ if path == [5, 16, 37, 12, 34]:
 else:
     print("something is off, your code produced the following:")
     print(path)
-#
-#   
-## Visualize your the result of the above test! You can also change start and goal here to check other paths
-#start = 5
-#goal = 34
-# 
-#show_map(map_40, start=start, goal=goal, path=PathPlanner(map_40, start, goal).path)        
+   
+# Visualize your the result of the above test! You can also change start and goal here to check other paths
+start = 5
+goal = 34
+ 
+show_map(map_40, start=start, goal=goal, path=PathPlanner(map_40, start, goal).path)
  
