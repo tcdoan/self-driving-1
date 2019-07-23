@@ -10,17 +10,6 @@ class MinPQ():
         self.elements = [None]
         self.i = 1
 
-    def __iter__(self):
-        self.i = 1
-        return self
-
-    def __next__(self):
-        k = self.i
-        if k > self.n:
-            raise StopIteration
-        self.i += 1
-        return k
-
     def empty(self):
         return self.n == 0
 
@@ -33,8 +22,8 @@ class MinPQ():
         return math.inf
 
     def score(self, k):
-        if self.elements[k] in self.scores:
-            self.scores[self.elements[k]]
+        if self.elements[k] in self.scores.keys():
+            return self.scores[self.elements[k]]
         return math.inf
 
     def add(self, x):
@@ -111,7 +100,7 @@ def planner(m, start, goal):
                 f_scores[y] = g_scores[y] + distance(m, y, goal)
                 came_from[y] = x
 
-            if  y not in open_set:
+            if  y not in open_set.elements:
                 open_set.add(y)
 
     print('No path found.')
