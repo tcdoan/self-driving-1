@@ -15,9 +15,11 @@ class MinPQ():
         return self
 
     def __next__(self):
-        if self.i > self.n:
+        k = self.i
+        if k > self.n:
             raise StopIteration
         self.i += 1
+        return k
 
     def empty(self):
         return self.n == 0
@@ -75,7 +77,7 @@ def construct_path(came_from, x):
     path = [x]
     while x in came_from.keys():
         x = came_from[x]
-        path += [x]
+        path.append(x)
 
     return [x for x in reversed(path)]
 
@@ -87,7 +89,7 @@ def get_g_score(g_scores, x):
 def planner(m, start, goal):
     open_set = MinPQ()
     open_set.add(start)
-    f_scores = {start: math.inf}
+    f_scores = {start: distance(m, start, goal)}
     open_set.scores = f_scores
     g_scores = {start: 0}
     close_set = set()
@@ -108,7 +110,6 @@ def planner(m, start, goal):
                 g_scores[y] = get_g_score(g_scores, x) + distance(m, x, y)
                 f_scores[y] = g_scores[y] + distance(m, y, goal)
                 came_from[y] = x
-                open_set.add(y)
 
             if  y not in open_set:
                 open_set.add(y)
@@ -139,4 +140,10 @@ def test(a_star_search_function):
     else:
         print("Passed", correct, "/", len(MAP_40_ANSWERS), "test cases")
 
-test(planner)
+# test(planner)
+m= load_map_40()
+start, goal = 8, 24
+correct_path = [5, 16, 37, 12, 34]
+
+path = planner(m, start, goal)
+show_map(m, start=start, goal=goal, path=path)
